@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace BasixLexer {
-    public class Node {
+	public class Node {
 		public List<Node> Children = new List<Node>();
 
 		public Token Value;
@@ -18,229 +18,233 @@ namespace BasixLexer {
 			Value = value;
 		}
 	}
-    
-    public class Token {
-        public string Type;
+	
+	public class Token {
+		public string Type;
 
-        public string Value;
+		public string Value;
 
-        public int Line;
+		public int Line;
 
-        public int Column;
+		public int Column;
 
-        public Token(string type, string value, int line, int column) {
-            Type = type;
-            Value = value;
-            Line = line;
-            Column = column;
-        }
-    }
+		public Token(string type, string value, int line, int column) {
+			Type = type;
+			Value = value;
+			Line = line;
+			Column = column;
+		}
+	}
 
-    public class PatternValue {
-        public string Type;
+	public class PatternValue {
+		public string Type;
 
-        public bool Optional;
+		public bool Optional;
 
-        public PatternValue(string type, bool optional = false) {
-            Type = type;
-            
-            Optional = optional;
-        }
-    }
+		public PatternValue(string type, bool optional = false) {
+			Type = type;
+			
+			Optional = optional;
+		}
+	}
 
-    public class Pattern {
-        public List<PatternValue> Expected = new List<PatternValue>();
+	public class Pattern {
+		public List<PatternValue> Expected = new List<PatternValue>();
 
-        public void Add(string type, bool optional = false) {
-            Expected.Add(new PatternValue(type, optional));
-        }
+		public void Add(string type, bool optional = false) {
+			Expected.Add(new PatternValue(type, optional));
+		}
 
-        public void Pop() {
-            if (Expected.Count > 0)
-                Expected.RemoveAt(0);
-        }
-    }
+		public void Pop() {
+			if (Expected.Count > 0)
+				Expected.RemoveAt(0);
+		}
+	}
 
-    public class Lexer {
-        private string Source;
+	public class Lexer {
+		private string Source;
 
-        public int Position = 0;
+		public int Position = 0;
 
-        private int Line;
+		private int Line;
 
-        private int Column;
+		private int Column;
 
-        public char Get() {
-            if (Position >= Source.Length) {
-                return '\0';
-            }
+		public char Get() {
+			if (Position >= Source.Length) {
+				return '\0';
+			}
 
-            char c = Source[Position];
+			char c = Source[Position];
 
-            Position++;
+			Position++;
 
-            if (c == '\n') {
-                Line++;
-                Column = 0;
-            }
-            else {
-                Column++;
-            }
+			if (c == '\n') {
+				Line++;
+				Column = 0;
+			}
+			else {
+				Column++;
+			}
 
-            return c;
-        }
+			return c;
+		}
 
-        public char Peek() {
-            if (Position >= Source.Length) {
-                return '\0';
-            }
+		public char Peek() {
+			if (Position >= Source.Length) {
+				return '\0';
+			}
 
-            return Source[Position];
-        }
+			return Source[Position];
+		}
 
-        public Token GetToken() {
-            char c = Get();
+		public Token GetToken() {
+			char c = Get();
 
-            while (char.IsWhiteSpace(c)) {
-                c = Get();
-            }
+			while (char.IsWhiteSpace(c)) {
+				c = Get();
+			}
 
-            if (c == '\0') {
-                return new Token("EOF", "", Line, Column);
-            }
+			if (c == '\0') {
+				return new Token("EOF", "", Line, Column);
+			}
 
-            if (char.IsLetter(c)) {
-                StringBuilder sb = new StringBuilder();
+			if (char.IsLetter(c)) {
+				StringBuilder sb = new StringBuilder();
 
-                sb.Append(c);
+				sb.Append(c);
 
-                while (char.IsLetterOrDigit(Peek())) {
-                    sb.Append(Get());
-                }
+				while (char.IsLetterOrDigit(Peek())) {
+					sb.Append(Get());
+				}
 
-                return new Token("ID", sb.ToString(), Line, Column);
-            }
+				return new Token("ID", sb.ToString(), Line, Column);
+			}
 
-            if (char.IsDigit(c)) {
-                StringBuilder sb = new StringBuilder();
+			if (char.IsDigit(c)) {
+				StringBuilder sb = new StringBuilder();
 
-                sb.Append(c);
+				sb.Append(c);
 
-                while (char.IsDigit(Peek())) {
-                    sb.Append(Get());
-                }
+				while (char.IsDigit(Peek())) {
+					sb.Append(Get());
+				}
 
-                return new Token("NUM", sb.ToString(), Line, Column);
-            }
+				return new Token("NUM", sb.ToString(), Line, Column);
+			}
 
-            if (c == '"' || c == '\'') {
-                string str = "";
+			if (c == '"' || c == '\'') {
+				string str = "";
 
-                while (Peek() != c) {
-                    str += Get();
-                }
+				while (Peek() != c) {
+					str += Get();
+				}
 
-                Get();
+				Get();
 
-                return new Token("STR", str, Line, Column);
-            }
+				return new Token("STR", str, Line, Column);
+			}
 
-            if (c == ';') {
-                return new Token("SEMICOLON", ";", Line, Column);
-            }
+			if (c == ';') {
+				return new Token("SEMICOLON", ";", Line, Column);
+			}
 
-            if (c == '+') {
-                return new Token("PLUS", "+", Line, Column);
-            }
+			if (c == '+') {
+				return new Token("PLUS", "+", Line, Column);
+			}
 
-            if (c == '-') {
-                return new Token("MINUS", "-", Line, Column);
-            }
+			if (c == '-') {
+				return new Token("MINUS", "-", Line, Column);
+			}
 
-            if (c == '*') {
-                return new Token("MUL", "*", Line, Column);
-            }
+			if (c == '*') {
+				return new Token("MUL", "*", Line, Column);
+			}
 
-            if (c == '/') {
-                return new Token("DIV", "/", Line, Column);
-            }
+			if (c == '/') {
+				return new Token("DIV", "/", Line, Column);
+			}
 
-            if (c == '(') {
-                return new Token("LPAREN", "(", Line, Column);
-            }
+			if (c == '(') {
+				return new Token("LPAREN", "(", Line, Column);
+			}
 
-            if (c == '|') {
-                return new Token("OR", "|", Line, Column);
-            }
+			if (c == '|') {
+				return new Token("OR", "|", Line, Column);
+			}
 
-            if (c == ')') {
-                return new Token("RPAREN", ")", Line, Column);
-            }
+			if (c == ')') {
+				return new Token("RPAREN", ")", Line, Column);
+			}
 
-            if (c == '{') {
-                return new Token("LBRACE", "{", Line, Column);
-            }
+			if (c == '{') {
+				return new Token("LBRACE", "{", Line, Column);
+			}
 
-            if (c == '}') {
-                return new Token("RBRACE", "}", Line, Column);
-            }
+			if (c == '}') {
+				return new Token("RBRACE", "}", Line, Column);
+			}
 
-            if (c == '.') {
-                return new Token("DOT", ".", Line, Column);
-            }
+			if (c == '^') {
+				return new Token("POW", "^", Line, Column);
+			}
 
-            if (c == ',') {
-                return new Token("COMMA", ",", Line, Column);
-            }
+			if (c == '.') {
+				return new Token("DOT", ".", Line, Column);
+			}
 
-            if (c == '>') {
-                return new Token("GT", ">", Line, Column);
-            }
+			if (c == ',') {
+				return new Token("COMMA", ",", Line, Column);
+			}
 
-           return new Token("UNKNOWN", c.ToString(), Line, Column);
-        }
+			if (c == '>') {
+				return new Token("GT", ">", Line, Column);
+			}
 
-        public Token PeekToken(int count = 1) {
-            int pos = Position;
-            int line = Line;
-            int col = Column;
+		   return new Token("UNKNOWN", c.ToString(), Line, Column);
+		}
 
-            Token token = GetToken();
+		public Token PeekToken(int count = 1) {
+			int pos = Position;
+			int line = Line;
+			int col = Column;
 
-            for (int i = 1; i < count; i++) {
-                token = GetToken();
-            }
+			Token token = GetToken();
 
-            Position = pos;
-            Line = line;
-            Column = col;
+			for (int i = 1; i < count; i++) {
+				token = GetToken();
+			}
 
-            return token;
-        }
+			Position = pos;
+			Line = line;
+			Column = col;
 
-        public bool Matches(Pattern pattern) {
-            int cur = 1;
+			return token;
+		}
 
-            foreach (PatternValue expected in pattern.Expected) {
-                if (PeekToken(cur).Type != expected.Type && ! expected.Optional) {
-                    return false;
-                }
+		public bool Matches(Pattern pattern) {
+			int cur = 1;
 
-                if (! expected.Optional)
-                    cur++;
-            }
+			foreach (PatternValue expected in pattern.Expected) {
+				if (PeekToken(cur).Type != expected.Type && ! expected.Optional) {
+					return false;
+				}
 
-            return true;
-        }
+				if (! expected.Optional)
+					cur++;
+			}
 
-        public Lexer(string source) {
-            Source = source;
+			return true;
+		}
 
-            Position = 0;
+		public Lexer(string source) {
+			Source = source;
 
-            Line = 1;
+			Position = 0;
 
-            Column = 1;
-        }
-    }
+			Line = 1;
+
+			Column = 1;
+		}
+	}
 }

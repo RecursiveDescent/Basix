@@ -4,76 +4,76 @@ using BasixLexer;
 using Basix.Grammar;
 
 namespace Basix {
-    public class Generator {
-        public void Generate(GrammarSpec grammar, string output) {
-            StreamWriter writer = new StreamWriter(output);
+	public class Generator {
+		public void Generate(GrammarSpec grammar, string output) {
+			StreamWriter writer = new StreamWriter(output);
 
-            FormatState state = new FormatState();
+			FormatState state = new FormatState();
 
-            state.IndentLevel++;
+			state.IndentLevel++;
 
-            writer.WriteLine("using System;");
-            writer.WriteLine("using System.Collections.Generic;\nusing BasixLexer;\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
-            
-            foreach (NonTerminal nonterm in grammar.NonTerminals) {
-                nonterm.Produce();
+			writer.WriteLine("using System;");
+			writer.WriteLine("using System.Collections.Generic;\nusing BasixLexer;\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
+			
+			foreach (NonTerminal nonterm in grammar.NonTerminals) {
+				nonterm.Produce();
 
-                writer.Write(nonterm.Output);
-            }
+				writer.Write(nonterm.Output);
+			}
 
-            writer.WriteLine("}\n}");
+			writer.WriteLine("}\n}");
 
-            writer.Close();
-        }
+			writer.Close();
+		}
 
-        public string GenerateString(GrammarSpec grammar) {
-            string output = "";
+		public string GenerateString(GrammarSpec grammar) {
+			string output = "";
 
-            FormatState state = new FormatState();
+			FormatState state = new FormatState();
 
-            state.IndentLevel++;
+			state.IndentLevel++;
 
-            output += "using System;\n";
-            output += "using System.Collections.Generic;\n\npublic class GeneratedParser {\n";
-            
-            foreach (NonTerminal nonterm in grammar.NonTerminals) {
-                nonterm.Produce();
+			output += "using System;\n";
+			output += "using System.Collections.Generic;\n\npublic class GeneratedParser {\n";
+			
+			foreach (NonTerminal nonterm in grammar.NonTerminals) {
+				nonterm.Produce();
 
-                output += nonterm.Output;
-            }
+				output += nonterm.Output;
+			}
 
-            output += ';';
+			output += ';';
 
-            return output;
-        }
-    }
+			return output;
+		}
+	}
 
-    public class Test {
-        public static void Main(string[] args) {
-            Console.WriteLine("Generating parser...");
+	public class Test {
+		public static void Main(string[] args) {
+			Console.WriteLine("Generating parser...");
 
-            Generator gen = new Generator();
+			Generator gen = new Generator();
 
-            // Basic argument parsing for now
+			// Basic argument parsing for now
 
-            string grammarfile = null;
+			string grammarfile = null;
 
-            string outputfile = "output.cs";
+			string outputfile = "output.cs";
 
-            for (int i = 0; i < args.Length; i++) {
-                if (args[i] == "-o") {
-                    outputfile = args[i + 1];
-                    i += 2;
-                }
+			for (int i = 0; i < args.Length; i++) {
+				if (args[i] == "-o") {
+					outputfile = args[i + 1];
+					i += 2;
+				}
 
-                if (grammarfile == null) {
-                    grammarfile = args[i];
-                }
-            }
+				if (grammarfile == null) {
+					grammarfile = args[i];
+				}
+			}
 
-            GrammarSpec grammar = GrammarSpec.FromFile(grammarfile);
+			GrammarSpec grammar = GrammarSpec.FromFile(grammarfile);
 
-            gen.Generate(grammar, outputfile);
-        }
-    }
+			gen.Generate(grammar, outputfile);
+		}
+	}
 }

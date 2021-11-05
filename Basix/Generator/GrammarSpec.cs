@@ -5,123 +5,123 @@ using BasixLexer;
 using Basix.Grammar;
 
 namespace Basix.Grammar {
-    public class GrammarSpec {
-        public List<NonTerminal> NonTerminals = new List<NonTerminal>();
+	public class GrammarSpec {
+		public List<NonTerminal> NonTerminals = new List<NonTerminal>();
 
-        public static GrammarPattern GetRulePattern(Lexer Lex, Dictionary<string, NonTerminal> nonterms) {
-            GrammarPattern ptrn = new GrammarPattern();
+		public static GrammarPattern GetRulePattern(Lexer Lex, Dictionary<string, NonTerminal> nonterms) {
+			GrammarPattern ptrn = new GrammarPattern();
 
-            while (Lex.PeekToken().Value != ";") {
-                Token rule = Lex.GetToken();
-                
-                if (nonterms.ContainsKey(rule.Value)) {
-                    ptrn.Add(nonterms[rule.Value]);
+			while (Lex.PeekToken().Value != ";") {
+				Token rule = Lex.GetToken();
+				
+				if (nonterms.ContainsKey(rule.Value)) {
+					ptrn.Add(nonterms[rule.Value]);
 
-                    if (Lex.PeekToken().Value == "*") {
-                        Lex.GetToken();
+					if (Lex.PeekToken().Value == "*") {
+						Lex.GetToken();
 
-                        Console.WriteLine("Repeat");
+						Console.WriteLine("Repeat");
 
-                        nonterms[rule.Value].Repeat = true;
-                    }
+						nonterms[rule.Value].Repeat = true;
+					}
 
-                    if (Lex.PeekToken().Value == "|") {
-                        Lex.GetToken();
+					if (Lex.PeekToken().Value == "|") {
+						Lex.GetToken();
 
-                        ptrn.Alternate = GetRulePattern(Lex, nonterms);
-                    }
+						ptrn.Alternate = GetRulePattern(Lex, nonterms);
+					}
 
-                    continue;
-                }
+					continue;
+				}
 
-                if (rule.Value == ".") {
-                     NonTerminal r = new NonTerminal(new Rule(Lex.GetToken().Value, null));
+				if (rule.Value == ".") {
+					 NonTerminal r = new NonTerminal(new Rule(Lex.GetToken().Value, null));
 
-                    if (Lex.PeekToken().Value == "*") {
-                        Lex.GetToken();
+					if (Lex.PeekToken().Value == "*") {
+						Lex.GetToken();
 
-                        Console.WriteLine("Repeat");
+						Console.WriteLine("Repeat");
 
-                        r.Repeat = true;
-                    }
+						r.Repeat = true;
+					}
 
-                    ptrn.Add(r);
+					ptrn.Add(r);
 
-                    if (Lex.PeekToken().Value == "|") {
-                        Lex.GetToken();
+					if (Lex.PeekToken().Value == "|") {
+						Lex.GetToken();
 
-                        ptrn.Alternate = GetRulePattern(Lex, nonterms);
-                    }
+						ptrn.Alternate = GetRulePattern(Lex, nonterms);
+					}
 
-                    continue;
-                }
+					continue;
+				}
 
-                NonTerminal added = new NonTerminal(new Rule(null, rule.Value));
+				NonTerminal added = new NonTerminal(new Rule(null, rule.Value));
 
-                if (Lex.PeekToken().Value == "*") {
-                    Lex.GetToken();
+				if (Lex.PeekToken().Value == "*") {
+					Lex.GetToken();
 
-                    Console.WriteLine("Repeat");
+					Console.WriteLine("Repeat");
 
-                    added.Repeat = true;
-                }
-                
-                ptrn.Add(added);
+					added.Repeat = true;
+				}
+				
+				ptrn.Add(added);
 
-                if (Lex.PeekToken().Value == "|") {
-                    Lex.GetToken();
+				if (Lex.PeekToken().Value == "|") {
+					Lex.GetToken();
 
-                    Console.WriteLine("Alternate");
+					Console.WriteLine("Alternate");
 
-                    ptrn.Alternate = GetRulePattern(Lex, nonterms);
-                }
-            }
+					ptrn.Alternate = GetRulePattern(Lex, nonterms);
+				}
+			}
 
-            return ptrn;
-        }
+			return ptrn;
+		}
 
-        public static GrammarSpec FromFile(string path) {
-            GrammarSpec spec = new GrammarSpec();
+		public static GrammarSpec FromFile(string path) {
+			GrammarSpec spec = new GrammarSpec();
 
-            string src = File.ReadAllText(path);
+			string src = File.ReadAllText(path);
 
-            Lexer Lex = new Lexer(src);
+			Lexer Lex = new Lexer(src);
 
-            Dictionary<string, NonTerminal> nonterms = new Dictionary<string, NonTerminal>();
-                
-            while (true) {
-                if (Lex.PeekToken().Value == "=") {
-                    Lex.GetToken();
+			Dictionary<string, NonTerminal> nonterms = new Dictionary<string, NonTerminal>();
+				
+			while (true) {
+				if (Lex.PeekToken().Value == "=") {
+					Lex.GetToken();
 
-                    nonterms.Add(Lex.PeekToken().Value, new NonTerminal(Lex.GetToken().Value));
+					nonterms.Add(Lex.PeekToken().Value, new NonTerminal(Lex.GetToken().Value));
 
-                    Lex.GetToken();
+					Lex.GetToken();
 
-                    continue;
-                }
+					continue;
+				}
 
-                Token name = Lex.GetToken();
+				Token name = Lex.GetToken();
 
-                if (name.Type == "EOF")
-                    break;
+				if (name.Type == "EOF")
+					break;
 
-                if (! nonterms.ContainsKey(name.Value))
-                    nonterms.Add(name.Value, new NonTerminal(name.Value));
+				if (! nonterms.ContainsKey(name.Value))
+					nonterms.Add(name.Value, new NonTerminal(name.Value));
 
 
-                if (Lex.GetToken().Value != ">")
-                    throw new Exception("Expected '>'");
+				if (Lex.GetToken().Value != ">")
+					throw new Exception("Expected '>'");
 
-                GrammarPattern ptrn = GetRulePattern(Lex, nonterms);
+				GrammarPattern ptrn = GetRulePattern(Lex, nonterms);
 
-                nonterms[name.Value].Add(new Rule(ptrn));
+				nonterms[name.Value].Add(new Rule(ptrn));
 
-                spec.NonTerminals.Add(nonterms[name.Value]);
+				spec.NonTerminals.Add(nonterms[name.Value]);
 
-                Lex.GetToken();
-            }
+				Lex.GetToken();
+			}
 
-            return spec;
-        }
-    }
+			return spec;
+		}
+	}
 }
