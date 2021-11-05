@@ -13,7 +13,7 @@ namespace ParseGen {
             state.IndentLevel++;
 
             writer.WriteLine("using System;");
-            writer.WriteLine("using System.Collections.Generic;\n\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
+            writer.WriteLine("using System.Collections.Generic;\nusing ParseLexer\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
             
             foreach (NonTerminal nonterm in grammar.NonTerminals) {
                 nonterm.Produce();
@@ -21,7 +21,7 @@ namespace ParseGen {
                 writer.Write(nonterm.Output);
             }
 
-            writer.WriteLine("}");
+            writer.WriteLine("}\n}");
 
             writer.Close();
         }
