@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ParseLexer {
+namespace BasixLexer {
     public class Node {
 		public List<Node> Children = new List<Node>();
 

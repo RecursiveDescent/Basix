@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using ParseLexer;
-using ParseGen.Grammar;
+using BasixLexer;
+using Basix.Grammar;
 
-namespace ParseGen {
+namespace Basix.Grammar {
     public class GrammarSpec {
         public List<NonTerminal> NonTerminals = new List<NonTerminal>();
 

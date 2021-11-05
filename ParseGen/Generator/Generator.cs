@@ -1,9 +1,9 @@
 using System;
 using System.IO;
-using ParseLexer;
-using ParseGen.Grammar;
+using BasixLexer;
+using Basix.Grammar;
 
-namespace ParseGen {
+namespace Basix {
     public class Generator {
         public void Generate(GrammarSpec grammar, string output) {
             StreamWriter writer = new StreamWriter(output);
@@ -13,7 +13,7 @@ namespace ParseGen {
             state.IndentLevel++;
 
             writer.WriteLine("using System;");
-            writer.WriteLine("using System.Collections.Generic;\nusing ParseLexer\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
+            writer.WriteLine("using System.Collections.Generic;\nusing BasixLexer;\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
             
             foreach (NonTerminal nonterm in grammar.NonTerminals) {
                 nonterm.Produce();

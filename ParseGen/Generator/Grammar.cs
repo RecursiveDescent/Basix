@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 
-namespace ParseGen.Grammar {
+namespace Basix.Grammar {
     public class FormatState {
         public int IndentLevel;
 

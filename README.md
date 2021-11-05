@@ -29,7 +29,7 @@ AddQ > + Add;
 Add > Sub AddQ | Sub;
 ```
 
-*Note the use of = in this grammar, basix grammars are currently parsed from top to bottom with single pass, meaning if you want to use a rule defined later in the file you need to tell the program it is going to be defined later*
+*Note the use of = in this grammar, basix grammars are currently parsed from top to bottom with a single pass, meaning if you want to use a rule defined later in the file you need to tell the program it is going to be defined later*
 
 This grammar uses two rules for each operator, necessary to parse the equation correctly as it eliminates left-recursion [<sup>wikipedia</sup>](https://en.wikipedia.org/wiki/Left_recursion) while correctly parsing left-associative operators (addition is left-associative because you do 1 + 2 before 3 in 1 + 2 + 3).
 
