@@ -54,9 +54,26 @@ namespace ParseGen {
 
             Generator gen = new Generator();
 
-            GrammarSpec grammar = GrammarSpec.FromFile("test.gr");
+            // Basic argument parsing for now
 
-            gen.Generate(grammar, "test.txt");
+            string grammarfile = null;
+
+            string outputfile = "output.cs";
+
+            for (int i = 0; i < args.Length; i++) {
+                if (args[i] == "-o") {
+                    outputfile = args[i + 1];
+                    i += 2;
+                }
+
+                if (grammarfile == null) {
+                    grammarfile = args[i];
+                }
+            }
+
+            GrammarSpec grammar = GrammarSpec.FromFile(grammarfile);
+
+            gen.Generate(grammar, outputfile);
         }
     }
 }
