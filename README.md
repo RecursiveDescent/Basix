@@ -33,6 +33,6 @@ Add > Sub AddQ | Sub;
 
 This grammar uses two rules for each operator, necessary to parse the equation correctly as it eliminates left-recursion [<sup>wikipedia</sup>](https://en.wikipedia.org/wiki/Left_recursion) while correctly parsing left-associative operators (addition is left-associative because you do 1 + 2 before 3 in 1 + 2 + 3).
 
-There are some cases where you need to match 0 or more of the same rule, in which case you can use the * symbol (when matching * as part of the grammar, use .MUL instead of *, or `A * B` could be parsed as `A* B`).
+There are some cases where you need to match 0 or more of the same rule, in which case you can use the ? symbol (when matching * or ? as part of the grammar, use .MUL and .QMARK instead of */?, or `A * B` could be parsed as `A* B`).
 
 `List > [ Element* ];`

@@ -19,7 +19,7 @@ namespace BasixLexer {
 
 		public Node(string nonterm, Token value) {
 			NonTerminal = nonterm;
-			
+
 			Value = value;
 		}
 	}
@@ -192,6 +192,10 @@ namespace BasixLexer {
 
 			if (c == '^') {
 				return new Token("POW", "^", Line, Column);
+			}
+
+			if (c == '?') {
+				return new Token("QMARK", "?", Line, Column);
 			}
 
 			if (c == '.') {
