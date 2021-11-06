@@ -8,7 +8,7 @@ namespace Basix.Grammar {
 	public class GrammarSpec {
 		public List<NonTerminal> NonTerminals = new List<NonTerminal>();
 
-		public static GrammarPattern GetRulePattern(Lexer Lex, Dictionary<string, NonTerminal> nonterms) {
+		public static GrammarPattern GetRulePattern(string parentname, Lexer Lex, Dictionary<string, NonTerminal> nonterms) {
 			GrammarPattern ptrn = new GrammarPattern();
 
 			while (Lex.PeekToken().Value != ";") {
@@ -20,15 +20,19 @@ namespace Basix.Grammar {
 					if (Lex.PeekToken().Value == "*") {
 						Lex.GetToken();
 
-						Console.WriteLine("Repeat");
-
 						nonterms[rule.Value].Repeat = true;
+					}
+
+					if (Lex.PeekToken().Value == "?") {
+						Lex.GetToken();
+
+						nonterms[rule.Value].Optional = true;
 					}
 
 					if (Lex.PeekToken().Value == "|") {
 						Lex.GetToken();
 
-						ptrn.Alternate = GetRulePattern(Lex, nonterms);
+						ptrn.Alternate = GetRulePattern(parentname, Lex, nonterms);
 					}
 
 					continue;
@@ -37,12 +41,18 @@ namespace Basix.Grammar {
 				if (rule.Value == ".") {
 					 NonTerminal r = new NonTerminal(new Rule(Lex.GetToken().Value, null));
 
+					 r.ParentRule = parentname;
+
 					if (Lex.PeekToken().Value == "*") {
 						Lex.GetToken();
 
-						Console.WriteLine("Repeat");
-
 						r.Repeat = true;
+					}
+
+					if (Lex.PeekToken().Value == "?") {
+						Lex.GetToken();
+
+						r.Optional = true;
 					}
 
 					ptrn.Add(r);
@@ -50,7 +60,7 @@ namespace Basix.Grammar {
 					if (Lex.PeekToken().Value == "|") {
 						Lex.GetToken();
 
-						ptrn.Alternate = GetRulePattern(Lex, nonterms);
+						ptrn.Alternate = GetRulePattern(parentname, Lex, nonterms);
 					}
 
 					continue;
@@ -58,12 +68,18 @@ namespace Basix.Grammar {
 
 				NonTerminal added = new NonTerminal(new Rule(null, rule.Value));
 
+				added.ParentRule = parentname;
+
 				if (Lex.PeekToken().Value == "*") {
 					Lex.GetToken();
 
-					Console.WriteLine("Repeat");
-
 					added.Repeat = true;
+				}
+
+				if (Lex.PeekToken().Value == "?") {
+					Lex.GetToken();
+
+					added.Optional = true;
 				}
 				
 				ptrn.Add(added);
@@ -71,9 +87,7 @@ namespace Basix.Grammar {
 				if (Lex.PeekToken().Value == "|") {
 					Lex.GetToken();
 
-					Console.WriteLine("Alternate");
-
-					ptrn.Alternate = GetRulePattern(Lex, nonterms);
+					ptrn.Alternate = GetRulePattern(parentname, Lex, nonterms);
 				}
 			}
 
@@ -112,7 +126,7 @@ namespace Basix.Grammar {
 				if (Lex.GetToken().Value != ">")
 					throw new Exception("Expected '>'");
 
-				GrammarPattern ptrn = GetRulePattern(Lex, nonterms);
+				GrammarPattern ptrn = GetRulePattern(name.Value, Lex, nonterms);
 
 				nonterms[name.Value].Add(new Rule(ptrn));
 

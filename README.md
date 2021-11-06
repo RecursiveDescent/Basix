@@ -36,5 +36,3 @@ This grammar uses two rules for each operator, necessary to parse the equation c
 There are some cases where you need to match 0 or more of the same rule, in which case you can use the * symbol (when matching * as part of the grammar, use .MUL instead of *, or `A * B` could be parsed as `A* B`).
 
 `List > [ Element* ];`
-
-**Basix does not implement optional rules yet, but this can be worked around by creating a subrule that uses \***
