@@ -13,8 +13,13 @@ namespace BasixLexer {
 		public Node() {
 
 		}
-
 		public Node(Token value) {
+			Value = value;
+		}
+
+		public Node(string nonterm, Token value) {
+			NonTerminal = nonterm;
+			
 			Value = value;
 		}
 	}

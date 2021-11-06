@@ -20,6 +20,8 @@ namespace Basix.Grammar {
 	public class NonTerminal {
 		public string Name;
 
+		public string ParentRule = "";
+
 		public List<Rule> Rules = new List<Rule>();
 
 		public string Output;
@@ -31,6 +33,8 @@ namespace Basix.Grammar {
 		public List<Rule> Terminals = new List<Rule>();
 
 		public bool Repeat = false;
+
+		public bool Optional = false;
 
 		public void Add(Rule rule) {
 			Rules.Add(rule);
@@ -129,7 +133,7 @@ namespace Basix.Grammar {
 			}
 		}
 
-		public string Produce(FormatState state = null, string name = "") {
+		public string Produce(FormatState state = null, string name = null) {
 			string output = state.Indent() + "\n";
 
 			state = state ?? State;
@@ -151,12 +155,12 @@ namespace Basix.Grammar {
 
 							output += state.Indent() + "}\n";
 
-							if (Recognizer.Alternate != null && ! rule.Repeat) {
+							if (Recognizer.Alternate != null && ! rule.Repeat && ! rule.Optional) {
 								output += state.Indent() + "else {\n";
 
 								state.IndentLevel++;
 
-								output += state.Indent() + $"\tnode = new Node(); node.NonTerminal = \"{name}\";\n";
+								output += state.Indent() + $"\tnode = new Node(); node.NonTerminal = \"{name ?? rule.ParentRule}\";\n";
 
 								output += state.Indent() + "\tLex.Position = pos;\n";
 
@@ -168,7 +172,7 @@ namespace Basix.Grammar {
 
 								output += state.Indent() + "}\n";
 							}
-							else if (! rule.Repeat) {
+							else if (! rule.Repeat && ! rule.Optional) {
 								output += state.Indent() + "else {\n";
 
 								state.IndentLevel++;
@@ -196,8 +200,7 @@ namespace Basix.Grammar {
 							}
 
 							state.IndentLevel++;
-
-							output += state.Indent() + "\tnode.Children.Add(new Node(Lex.GetToken()));\n";
+							output += state.Indent() + $"\tnode.Children.Add(new Node(\"{name ?? rule.ParentRule}\", Lex.GetToken()));\n";
 
 							state.IndentLevel--;
 
@@ -211,7 +214,7 @@ namespace Basix.Grammar {
 							state.IndentLevel++;
 
 							if (Recognizer.Alternate != null) {
-								output += state.Indent() + $"\tnode = new Node(); node.NonTerminal = \"{name}\";\n";
+								output += state.Indent() + $"\tnode = new Node(); node.NonTerminal = \"{name ?? rule.ParentRule}\";\n";
 
 								output += state.Indent() + "\tLex.Position = pos;\n";
 
@@ -268,7 +271,7 @@ namespace Basix.Grammar {
 
 					state.IndentLevel++;
 
-					output += state.Indent() + $"node.Children.Add(new Node(Lex.GetToken()));\n";
+					output += state.Indent() + $"node.Children.Add(new Node(\"{name}\", Lex.GetToken()));\n";
 
 					state.IndentLevel--;
 
