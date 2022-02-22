@@ -15,6 +15,9 @@ namespace Basix.Grammar {
 				Token rule = Lex.GetToken();
 				
 				if (nonterms.ContainsKey(rule.Value)) {
+					if (rule.Value == "\\")
+						rule = Lex.GetToken();
+					
 					ptrn.Add(nonterms[rule.Value]);
 
 					if (Lex.PeekToken().Value == "*") {
@@ -65,6 +68,9 @@ namespace Basix.Grammar {
 
 					continue;
 				}
+
+				if (rule.Value == "\\")
+					rule = Lex.GetToken();
 
 				NonTerminal added = new NonTerminal(new Rule(null, rule.Value));
 
