@@ -12,6 +12,10 @@ namespace Basix.Grammar {
 			GrammarPattern ptrn = new GrammarPattern();
 
 			while (Lex.PeekToken().Value != ";") {
+				if (Lex.PeekToken().Type == "EOF") {
+					throw new Exception("Unexpected end of file [Expected ';']");
+				}
+
 				Token rule = Lex.GetToken();
 				
 				if (nonterms.ContainsKey(rule.Value)) {

@@ -12,16 +12,28 @@ namespace Basix {
 
 			state.IndentLevel++;
 
-			writer.WriteLine("using System;");
-			writer.WriteLine("using System.Collections.Generic;\nusing BasixLexer;\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
+			CodeEmitter emit = new CodeEmitter();
+
+			emit.Imports();
+
+			// writer.WriteLine("using System;");
+			// writer.WriteLine("using System.Collections.Generic;\nusing BasixLexer;\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
+
+			emit.DefineClass("GeneratedParser");
+
+			emit.Define(emit.RefType("Lexer"), "Lex");
 			
 			foreach (NonTerminal nonterm in grammar.NonTerminals) {
+				nonterm.Init(emit);
+
 				nonterm.Produce();
 
-				writer.Write(nonterm.Output);
+				// writer.Write(nonterm.Output);
 			}
 
-			writer.WriteLine("}\n}");
+			emit.EndBlock();
+
+			writer.Write(emit.Source);
 
 			writer.Close();
 		}
