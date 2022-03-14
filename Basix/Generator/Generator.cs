@@ -5,30 +5,33 @@ using Basix.Grammar;
 
 namespace Basix {
 	public class Generator {
-		public void Generate(GrammarSpec grammar, string output) {
+		public void Generate(GrammarSpec grammar, string output, string lang) {
 			StreamWriter writer = new StreamWriter(output);
 
 			FormatState state = new FormatState();
 
 			state.IndentLevel++;
 
-			CodeEmitter emit = new CodeEmitter();
+			CodeEmitter emit = lang == "js" ? new JSCodeEmitter() : new CodeEmitter();
 
 			emit.Imports();
 
-			// writer.WriteLine("using System;");
-			// writer.WriteLine("using System.Collections.Generic;\nusing BasixLexer;\n\nnamespace BasixParser {\npublic class GeneratedParser {\nLexer Lex; public GeneratedParser(string source) { Lex = new Lexer(source); }\n");
-
 			emit.DefineClass("GeneratedParser");
 
-			emit.Define(emit.RefType("Lexer"), "Lex");
+			emit.DefineFunction("", "constructor");
+			
+			emit.Assign(emit.Access("this", "Lex"), emit.Null);
+
+			emit.EndBlock();
+
+			foreach (NonTerminal nonterm in grammar.NonTerminals) {
+				(emit as JSCodeEmitter)?.DefinedFunctions?.Add(nonterm.Name);
+			}
 			
 			foreach (NonTerminal nonterm in grammar.NonTerminals) {
 				nonterm.Init(emit);
 
-				nonterm.Produce();
-
-				// writer.Write(nonterm.Output);
+				nonterm.Produce(new JSCollection(emit));
 			}
 
 			emit.EndBlock();
@@ -38,6 +41,7 @@ namespace Basix {
 			writer.Close();
 		}
 
+		[Obsolete]
 		public string GenerateString(GrammarSpec grammar) {
 			string output = "";
 
@@ -49,7 +53,7 @@ namespace Basix {
 			output += "using System.Collections.Generic;\n\npublic class GeneratedParser {\n";
 			
 			foreach (NonTerminal nonterm in grammar.NonTerminals) {
-				nonterm.Produce();
+				nonterm.Produce(new Collection(new CodeEmitter()));
 
 				output += nonterm.Output;
 			}
@@ -72,9 +76,24 @@ namespace Basix {
 
 			string outputfile = "output.cs";
 
+			string lang = "js";
+
 			for (int i = 0; i < args.Length; i++) {
 				if (args[i] == "-o") {
 					outputfile = args[i + 1];
+
+					i += 2;
+				}
+
+				if (args[i].StartsWith("-l")) {
+					lang = args[i].Substring(2);
+
+					continue;
+				}
+
+				if (args[i] == "-lang") {
+					lang = args[i + 1];
+
 					i += 2;
 				}
 
@@ -83,9 +102,17 @@ namespace Basix {
 				}
 			}
 
+			lang = lang.ToLower();
+
+			if (lang != "js" && lang != "cpp") {
+				Console.WriteLine("Only JS or CPP are supported at this time.");
+
+				return;
+			}
+
 			GrammarSpec grammar = GrammarSpec.FromFile(grammarfile);
 
-			gen.Generate(grammar, outputfile);
+			gen.Generate(grammar, outputfile, lang);
 		}
 	}
 }

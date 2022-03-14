@@ -59,19 +59,24 @@ namespace Basix.Grammar {
 			}
 		}
 
-		public void Produce() {
+		public void Produce(Collection collection) {
 			if (Produced)
 				return;
+
+			collection.Subject = Emit.Access("node", "Children");
 			
 			foreach (var rule in Rules) {
 				rule.Init(Emit);
 
-				Output += rule.Produce(State, Name) + '\n';
+				Output += rule.Produce(collection, Name) + '\n';
 			}
 
 			State.IndentLevel--;
 
 			Emit.Assign(Emit.Deref("outnode"), "node");
+
+			if (! Emit.SupportsPassByRef)
+				Emit.PushRef("node");
 
 			Emit.Return("true");
 
@@ -89,7 +94,7 @@ namespace Basix.Grammar {
 
 			Emit.Assign(Emit.Access("node", "NonTerminal"), $"\"{Name}\"");
 
-			Emit.Define(Emit.RefType("Node"), "rule", "nullptr");
+			Emit.Define(Emit.RefType("Node"), "rule", Emit.Null);
 
 			Emit.Define("int", "pos", Emit.Access("Lex", "Position"));
 
@@ -111,7 +116,7 @@ namespace Basix.Grammar {
 
 			Emit.Assign(Emit.Access("node", "NonTerminal"), $"\"{name}\"");
 
-			Emit.Define(Emit.RefType("Node"), "rule", "nullptr");
+			Emit.Define(Emit.RefType("Node"), "rule", Emit.Null);
 
 			Emit.Define("int", "pos", Emit.Access("Lex", "Position"));
 
@@ -163,12 +168,10 @@ namespace Basix.Grammar {
 			}
 		}
 
-		public string Produce(FormatState state = null, string name = null) {
+		public string Produce(Collection collection, string name = null) {
 			string output = "";
 
-			state = state ?? State;
-
-			Collection nodechildren = new Collection(Emit, Emit.Access("node", "Children"));
+			Collection nodechildren = collection;
 
 			if (Terminal) {
 				if (Recognizer != null) {
@@ -177,14 +180,21 @@ namespace Basix.Grammar {
 						string conditional = rule.Repeat ? "while" : "if";
 
 						if (rule.Name != null) {
-							if (rule.Repeat)
+							if (rule.Repeat) {
 								Emit.While(Emit.CallExpr(rule.Name, Emit.Ref("rule")));
-							else
+								
+								if (! Emit.SupportsPassByRef)
+									Emit.Assign(Emit.Ref("rule"), Emit.PopRef());
+							}
+							else {
 								Emit.If(Emit.CallExpr(rule.Name, Emit.Ref("rule")));
+
+								if (! Emit.SupportsPassByRef)
+									Emit.Assign(Emit.Ref("rule"), Emit.PopRef());
+							}
 							
 							// output += state.Indent() + $"{conditional} ({ rule.Name }(out rule)) {{\n";
 
-							state.IndentLevel++;
 
 							// output += state.Indent() + "\tnode.Children.Add(rule);\n";
 
@@ -221,11 +231,14 @@ namespace Basix.Grammar {
 
 								altrule.Init(Emit);
 
-								altrule.Produce();
+								altrule.Produce(collection);
 
 								// output += state.Indent() + "outnode = node; return true;\n";
 
 								Emit.Assign(Emit.Deref("outnode"), "node");
+
+								if (! Emit.SupportsPassByRef)
+									Emit.PushRef("node");
 
 								Emit.Return("true");
 
@@ -310,8 +323,6 @@ namespace Basix.Grammar {
 
 							Emit.Else();
 
-							state.IndentLevel++;
-
 							if (Recognizer.Alternate != null) {
 								// output += state.Indent() + $"\tnode = new Node(); node.NonTerminal = \"{name ?? rule.ParentRule}\";\n";
 
@@ -329,11 +340,14 @@ namespace Basix.Grammar {
 
 								altrule.Init(Emit);
 
-								altrule.Produce();
+								altrule.Produce(collection);
 
 								// output += state.Indent() + "outnode = node; return true;\n";
 
 								Emit.Assign(Emit.Deref("outnode"), "node");
+
+								if (! Emit.SupportsPassByRef)
+									Emit.PushRef("node");
 
 								Emit.Return("true");
 							}
@@ -345,6 +359,9 @@ namespace Basix.Grammar {
 								// output += state.Indent() + "\toutnode = null;\n";
 
 								Emit.Assign(Emit.Deref("outnode"), Emit.Null);
+
+								if (! Emit.SupportsPassByRef)
+									Emit.PushRef(Emit.Null);
 
 								// output += state.Indent() + "\treturn false;\n";
 
@@ -426,7 +443,16 @@ namespace Basix.Grammar {
 
 				Emit.Call(NonTerminal.Name, Emit.Ref("rule"));
 
+				/*if (! Emit.SupportsPassByRef) {
+					Emit.Assign("rule", Emit.PopRef());
+
+					Emit.PushRef("rule");
+				}*/
+
 				Emit.Assign(Emit.Deref("outnode"), "rule");
+
+				if (! Emit.SupportsPassByRef)
+					Emit.PushRef("rule");
 
 				Emit.Return("true");
 			}

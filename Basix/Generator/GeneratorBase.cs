@@ -14,6 +14,10 @@ namespace Basix {
 			Emit.Call(Emit.Access(Subject, "push_back"), value);
 		}
 
+		public Collection(CodeEmitter emit) {
+			Emit = emit;
+		}
+
 		public Collection(CodeEmitter emit, string subject) {
 			Emit = emit;
 
@@ -22,16 +26,22 @@ namespace Basix {
 	}
 
 	// JS Generation doesn't work yet.
-	public class JSCollection {
+	public class JSCollection : Collection {
 		private CodeEmitter Emit;
 
-		public string Subject;
-
-		public virtual void Add(string value) {
+		public override void Add(string value) {
 			Emit.Call(Emit.Access(Subject, "push"), value);
 		}
 
-		public JSCollection(CodeEmitter emit, string subject) {
+		public string Pop() {
+			return Emit.CallExpr(Emit.Access(Subject, "pop"));
+		}
+
+		public JSCollection(CodeEmitter emit) : base(emit) {
+			Emit = emit;
+		}
+
+		public JSCollection(CodeEmitter emit, string subject) : base(emit, subject) {
 			Emit = emit;
 
 			Subject = subject;
@@ -40,6 +50,8 @@ namespace Basix {
 
 	// Default C++
 	public class CodeEmitter {
+		public bool SupportsPassByRef = true;
+
 		public string Source = "";
 
 		protected int IndentLevel = 0;
@@ -228,24 +240,79 @@ namespace Basix {
 
 			Source += $"delete {subject};\n";
 		}
+
+		// For targets that don't support pass by reference
+		public virtual void PushRef(string reference) {
+			return;
+		}
+
+		public virtual string PopRef() {
+			return null;
+		}
 	}
 
 	public class JSCodeEmitter : CodeEmitter {
-		public override void Imports() {}
+		public override void Imports() {
+			Source += "let refstack = [];\n\nlet { Lexer, Node } = require(\"./lexer.js\");\n\n";
+		}
+
+		private JSCollection RefStack;
+
+		public List<string> DefinedFunctions = new List<string>();
+
+		public override void Call(string subject, params string[] args) {
+			Indent();
+
+			if (DefinedFunctions.Contains(subject))
+				Source += "this." + subject;
+			else
+				Source += subject;
+
+			Source += '(';
+
+			foreach (string arg in args) {
+				Source += $"{arg}, ";
+			}
+
+			Source = Source.Trim(',', ' ');
+
+			Source += ");\n\n";
+		}
+
+		public override string CallExpr(string subject, params string[] args) {
+			if (DefinedFunctions.Contains(subject))
+				subject = "this." + subject;
+
+			string str = "";
+
+			str += subject;
+
+			str += '(';
+
+			foreach (string arg in args) {
+				str += $"{arg}, ";
+			}
+
+			str = str.Trim(',', ' ');
+
+			str += ')';
+
+			return str;
+		}
 
 		public override void Define(string type, string name, string value = null)
 		{
 			Indent();
 
 			if (value == null) {
-				Source += $"{name} = null;\n\n";
+				Source += $"let {name} = null;\n\n";
 
 				return;
 			}
 
 			// JS has no type checking
 
-			Source += $"{name} = {value};\n\n";
+			Source += $"{(IndentStack.Peek() != "class" ? "let " : " ")}{name} = {value};\n\n";
 		}
 
 		public override void DefineClass(string name) {
@@ -255,13 +322,15 @@ namespace Basix {
 
 			IndentLevel++;
 
-			Indent();
-
 			IndentStack.Push("class");
+
+			DefinedFunctions = new List<string>();
 		}
 
 		public override void DefineFunction(string type, string name, params KeyValuePair<string, string>[] args) {
 			Indent();
+
+			DefinedFunctions.Add(name);
 
 			Source += $"{name}(";
 
@@ -289,11 +358,25 @@ namespace Basix {
 
 		public override string Access(string subject, string member)
 		{
-			return $"{subject}.{member}";
+			return $"{(subject == "Lex" ? "this.Lex" : subject)}.{member}";
+		}
+
+		public override void PushRef(string jsref) {
+			Indent();
+			
+			RefStack.Add(jsref);
+		}
+
+		public override string PopRef() {
+			return RefStack.Pop();
 		}
 
 		public JSCodeEmitter() : base() {
 			Null = "null";
+
+			RefStack = new JSCollection(this, "refstack");
+
+			SupportsPassByRef = false;
 		}
 	}
 }
