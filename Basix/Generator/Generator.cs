@@ -83,6 +83,8 @@ namespace Basix {
 					outputfile = args[i + 1];
 
 					i += 2;
+
+					continue;
 				}
 
 				if (args[i].StartsWith("-l")) {
@@ -95,6 +97,8 @@ namespace Basix {
 					lang = args[i + 1];
 
 					i += 2;
+
+					continue;
 				}
 
 				if (grammarfile == null) {
